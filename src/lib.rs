@@ -1,4 +1,5 @@
-use crossterm::{cursor, execute, style, terminal};
+use crossterm::{cursor, event, execute, style, terminal};
+use futures::{future::Fuse, stream::Next, FutureExt, StreamExt};
 use thiserror::Error;
 
 pub mod command;
@@ -41,4 +42,20 @@ pub fn quit<W: std::io::Write>(w: &mut W) -> Result<()> {
         terminal::LeaveAlternateScreen
     )?;
     Ok(())
+}
+
+pub struct AsyncEventHandler {
+    event_stream: crossterm::event::EventStream,
+}
+
+impl AsyncEventHandler {
+    pub fn new() -> Self {
+        Self {
+            event_stream: crossterm::event::EventStream::new(),
+        }
+    }
+
+    pub fn next(&mut self) -> Fuse<Next<'_, event::EventStream>> {
+        self.event_stream.next().fuse()
+    }
 }

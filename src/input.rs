@@ -107,3 +107,27 @@ pub fn wait_for_u32<W: Write>(w: &mut W) -> Result<u32> {
         }
     }
 }
+
+pub fn process_event(e: Event) -> Result<Option<char>> {
+    let Event::Key(KeyEvent {
+        code,
+        modifiers: _,
+        kind: KeyEventKind::Press,
+        state: _,
+    }) = e
+    else {
+        return Ok(None);
+    };
+
+    match code {
+        KeyCode::Char(c) => match c {
+            'a'..='z' => Ok(Some(c)),
+            'A'..='Z' => Ok(Some(c.to_ascii_lowercase())),
+            _ => Ok(None),
+        },
+        KeyCode::Esc => {
+            return Err(Error::Escape);
+        }
+        _ => Ok(None),
+    }
+}
