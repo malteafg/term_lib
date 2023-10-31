@@ -123,6 +123,7 @@ pub fn process_event(e: Event) -> Result<Option<char>> {
         KeyCode::Char(c) => match c {
             'a'..='z' => Ok(Some(c)),
             'A'..='Z' => Ok(Some(c.to_ascii_lowercase())),
+            '0'..='9' => Ok(Some(c)),
             _ => Ok(None),
         },
         KeyCode::Esc => {
