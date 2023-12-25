@@ -9,8 +9,14 @@ use crossterm::{
 
 use crate::{Error, Result};
 
-pub fn wait_for_string<W: Write>(w: &mut W) -> Result<String> {
-    let mut input = String::new();
+pub fn wait_for_string<W: Write>(w: &mut W, old_string: &Option<String>) -> Result<String> {
+    let mut input = if let Some(old_string) = old_string {
+        w.write(old_string.as_bytes())?;
+        w.flush()?;
+        old_string.clone()
+    } else {
+        String::new()
+    };
 
     loop {
         if let Ok(Event::Key(KeyEvent {

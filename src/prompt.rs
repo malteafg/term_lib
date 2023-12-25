@@ -18,15 +18,19 @@ pub fn input_u32<W: Write>(w: &mut W, text: &str) -> Result<u32> {
     input::wait_for_u32(w)
 }
 
-pub fn input_string<W: Write>(w: &mut W, text: &str) -> Result<String> {
+pub fn edit_string<W: Write>(w: &mut W, text: &str, old_string: &Option<String>) -> Result<String> {
     iter(w, text.split("\n"))?;
     queue!(w, cursor::Show)?;
     w.flush()?;
 
-    let result = input::wait_for_string(w)?.trim().to_string();
+    let result = input::wait_for_string(w, old_string)?.trim().to_string();
 
     queue!(w, cursor::Hide)?;
     Ok(result)
+}
+
+pub fn input_string<W: Write>(w: &mut W, text: &str) -> Result<String> {
+    edit_string(w, text, &None)
 }
 
 pub fn confirmation<W: Write>(w: &mut W, text: &str) -> Result<bool> {
