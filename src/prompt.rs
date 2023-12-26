@@ -1,4 +1,3 @@
-use std::collections::BTreeSet;
 use std::fmt::Display;
 use std::io::Write;
 
@@ -47,20 +46,15 @@ pub fn confirmation<W: Write>(w: &mut W, text: &str) -> Result<bool> {
     }
 }
 
-pub fn select_from_list<W: Write, D: Display + Clone>(
+pub fn select_from_list<'a, W: Write, D: Display + Clone + 'a, I: Iterator<Item = &'a D>>(
     w: &mut W,
     text: &str,
-    options: &BTreeSet<D>,
+    options: I,
 ) -> Result<D> {
     let mut cmds: Vec<char> = Vec::new();
     ('a'..='z').for_each(|l| cmds.push(l));
 
-    if options.len() > cmds.len() {
-        panic!("Too many options to select from list");
-    }
-
     let list: Vec<(char, D)> = options
-        .iter()
         .enumerate()
         .map(|(i, o)| (cmds[i], o.clone()))
         .collect();
@@ -85,25 +79,28 @@ pub fn select_from_list<W: Write, D: Display + Clone>(
     }
 }
 
-pub fn select_cmd<W: Write, D: Clone + Command>(
+pub fn select_cmd<'a, W: Write, D: Clone + Command + 'a, I: Iterator<Item = &'a D>>(
     w: &mut W,
     text: &str,
-    options: &BTreeSet<D>,
+    options: I,
 ) -> Result<D> {
     iter(w, text.split("\n"))?;
     line(w, "Select from the list by typing the letter")?;
     newline(w, 1)?;
 
-    for x in options.iter() {
+    let mut results: Vec<&D> = Vec::new();
+    for x in options {
         line(w, x.display_as_cmd())?;
+        results.push(x);
     }
     w.flush()?;
 
     loop {
         let selected = input::wait_for_cmdchar()?;
-        for x in options.iter() {
+        for x in results.iter() {
             if x.get_char() == selected {
-                return Ok(x.clone());
+                let res = (*x).clone();
+                return Ok(res);
             }
         }
     }
