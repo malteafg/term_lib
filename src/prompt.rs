@@ -17,7 +17,7 @@ pub fn input_u32<W: Write>(w: &mut W, text: &str) -> Result<u32> {
     input::wait_for_u32(w)
 }
 
-pub fn edit_string<W: Write>(w: &mut W, text: &str, old_string: &Option<String>) -> Result<String> {
+pub fn edit_string<W: Write>(w: &mut W, text: &str, old_string: &str) -> Result<String> {
     iter(w, text.split("\n"))?;
     queue!(w, cursor::Show)?;
     w.flush()?;
@@ -29,7 +29,7 @@ pub fn edit_string<W: Write>(w: &mut W, text: &str, old_string: &Option<String>)
 }
 
 pub fn input_string<W: Write>(w: &mut W, text: &str) -> Result<String> {
-    edit_string(w, text, &None)
+    edit_string(w, text, "")
 }
 
 pub fn confirmation<W: Write>(w: &mut W, text: &str) -> Result<bool> {
