@@ -29,7 +29,9 @@ pub fn wait_for_string<W: Write>(w: &mut W, old_string: &str) -> Result<String> 
                     w.flush()?;
                 }
                 KeyCode::Enter => {
-                    return Ok(input);
+                    if !input.is_empty() {
+                        return Ok(input);
+                    }
                 }
                 KeyCode::Esc => {
                     return Err(Error::Escape);
