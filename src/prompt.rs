@@ -53,6 +53,7 @@ pub fn select_from_list<'a, W: Write, D: Display + Clone + 'a, I: Iterator<Item 
 ) -> Result<D> {
     let mut cmds: Vec<char> = Vec::new();
     ('a'..='z').for_each(|l| cmds.push(l));
+    ('A'..='Z').for_each(|l| cmds.push(l));
 
     let list: Vec<(char, D)> = options
         .enumerate()
