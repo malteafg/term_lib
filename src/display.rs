@@ -35,10 +35,7 @@ pub fn iter<W: Write, D: Display>(w: &mut W, iter: impl Iterator<Item = D>) -> R
     Ok(())
 }
 
-pub fn possible_cmds<'a, W: Write, D: Command + 'a>(
-    w: &mut W,
-    iter: impl Iterator<Item = &'a D>,
-) -> Result<()> {
+pub fn possible_cmds<W: Write, C: Command>(w: &mut W, iter: impl Iterator<Item = C>) -> Result<()> {
     for line in iter {
         queue!(w, Print(line.display_as_cmd()), cursor::MoveToNextLine(1))?;
     }

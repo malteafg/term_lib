@@ -83,11 +83,11 @@ pub fn select_from_list<W: Write, D: Display, I: Iterator<Item = D> + Clone>(
     unreachable!()
 }
 
-pub fn select_cmd<'a, W: Write, D: Command, I: Iterator<Item = D> + Clone>(
+pub fn select_cmd<'a, W: Write, C: Command, I: Iterator<Item = C> + Clone>(
     w: &mut W,
     text: &str,
     options: I,
-) -> Result<D> {
+) -> Result<C> {
     iter(w, text.split("\n"))?;
 
     let mut num_iter = 0usize;
