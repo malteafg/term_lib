@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use std::io::Write;
 
-use crossterm::{cursor, queue};
+use crossterm::{cursor, queue, style::Print};
 
 use crate::command::Command;
 use crate::display::*;
@@ -46,9 +46,9 @@ pub fn confirmation<W: Write>(w: &mut W, text: &str) -> Result<bool> {
     }
 }
 
-pub fn select_from_list<'a, W: Write, D: Display + Clone + 'a, I: Iterator<Item = &'a D>>(
+pub fn select_from_list<W: Write, D: Display + Clone, I: Iterator<Item = D>>(
     w: &mut W,
-    text: &str,
+    text: Option<&str>,
     options: I,
 ) -> Result<D> {
     let mut cmds: Vec<char> = Vec::new();
@@ -60,12 +60,13 @@ pub fn select_from_list<'a, W: Write, D: Display + Clone + 'a, I: Iterator<Item 
         .map(|(i, o)| (cmds[i], o.clone()))
         .collect();
 
-    iter(w, text.split("\n"))?;
-    line(w, "Select from the list by typing the letter")?;
-    newline(w, 1)?;
+    if let Some(text) = text {
+        iter(w, text.split("\n"))?;
+    };
 
     for (c, o) in list.iter() {
-        line(w, &format!("{}: {}", c, o))?;
+        queue!(w, Print(format!("{c}: ")))?;
+        iter(w, o.to_string().split("\n"))?;
     }
 
     w.flush()?;
@@ -86,8 +87,6 @@ pub fn select_cmd<'a, W: Write, D: Clone + Command + 'a, I: Iterator<Item = &'a 
     options: I,
 ) -> Result<D> {
     iter(w, text.split("\n"))?;
-    line(w, "Select from the list by typing the letter")?;
-    newline(w, 1)?;
 
     let mut results: Vec<&D> = Vec::new();
     for x in options {

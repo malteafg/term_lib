@@ -24,14 +24,11 @@ pub fn header<W: Write>(w: &mut W, header: &str) -> Result<()> {
     dash(w)?;
     iter(w, header.split("\n"))?;
     dash(w)?;
-    queue!(w, cursor::MoveToNextLine(1))?;
+    newline(w, 1)?;
     Ok(())
 }
 
-pub fn iter<W: Write, D: Display>(
-    w: &mut W,
-    iter: impl Iterator<Item = D>,
-) -> Result<()> {
+pub fn iter<W: Write, D: Display>(w: &mut W, iter: impl Iterator<Item = D>) -> Result<()> {
     for line in iter {
         queue!(w, Print(line), cursor::MoveToNextLine(1))?;
     }
