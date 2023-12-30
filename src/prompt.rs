@@ -55,14 +55,13 @@ pub fn select_from_list<W: Write, D: Display, I: Iterator<Item = D> + Clone>(
     ('a'..='z').for_each(|l| cmds.push(l));
     ('A'..='Z').for_each(|l| cmds.push(l));
 
+    if let Some(text) = text {
+        iter(w, text.split("\n"))?;
+    };
+
     let mut num_iter = 0usize;
     let mut selected = '\n';
     for (i, item) in options.enumerate().cycle() {
-        if num_iter == 0 {
-            if let Some(text) = text {
-                iter(w, text.split("\n"))?;
-            };
-        }
         if i == 0 {
             w.flush()?;
             if num_iter != 0 {
@@ -84,29 +83,34 @@ pub fn select_from_list<W: Write, D: Display, I: Iterator<Item = D> + Clone>(
     unreachable!()
 }
 
-pub fn select_cmd<'a, W: Write, D: Clone + Command + 'a, I: Iterator<Item = &'a D>>(
+pub fn select_cmd<'a, W: Write, D: Command, I: Iterator<Item = D> + Clone>(
     w: &mut W,
     text: &str,
     options: I,
 ) -> Result<D> {
     iter(w, text.split("\n"))?;
 
-    let mut results: Vec<&D> = Vec::new();
-    for x in options {
-        line(w, x.display_as_cmd())?;
-        results.push(x);
-    }
-    w.flush()?;
+    let mut num_iter = 0usize;
+    let mut selected = '\n';
+    for (i, cmd) in options.enumerate().cycle() {
+        if i == 0 {
+            w.flush()?;
+            if num_iter != 0 {
+                selected = input::wait_for_cmdchar()?;
+            }
+            num_iter += 1;
+        }
 
-    loop {
-        let selected = input::wait_for_cmdchar()?;
-        for x in results.iter() {
-            if x.get_char() == selected {
-                let res = (*x).clone();
-                return Ok(res);
+        if num_iter == 1 {
+            line(w, cmd.display_as_cmd())?;
+        } else {
+            if cmd.get_char() == selected {
+                return Ok(cmd);
             }
         }
     }
+
+    unreachable!()
 }
 
 pub fn fzf_search(opts: &str) -> Result<String> {
