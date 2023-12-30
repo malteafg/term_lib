@@ -46,7 +46,7 @@ pub fn confirmation<W: Write>(w: &mut W, text: &str) -> Result<bool> {
     }
 }
 
-pub fn select_from_list<W: Write, D: Display + Clone, I: Iterator<Item = D>>(
+pub fn select_from_list<W: Write, D: Display, I: Iterator<Item = D> + Clone>(
     w: &mut W,
     text: Option<&str>,
     options: I,
@@ -55,30 +55,33 @@ pub fn select_from_list<W: Write, D: Display + Clone, I: Iterator<Item = D>>(
     ('a'..='z').for_each(|l| cmds.push(l));
     ('A'..='Z').for_each(|l| cmds.push(l));
 
-    let list: Vec<(char, D)> = options
-        .enumerate()
-        .map(|(i, o)| (cmds[i], o.clone()))
-        .collect();
+    let mut num_iter = 0usize;
+    let mut selected = '\n';
+    for (i, item) in options.enumerate().cycle() {
+        if num_iter == 0 {
+            if let Some(text) = text {
+                iter(w, text.split("\n"))?;
+            };
+        }
+        if i == 0 {
+            w.flush()?;
+            if num_iter != 0 {
+                selected = input::wait_for_cmdchar()?;
+            }
+            num_iter += 1;
+        }
 
-    if let Some(text) = text {
-        iter(w, text.split("\n"))?;
-    };
-
-    for (c, o) in list.iter() {
-        queue!(w, Print(format!("{c}: ")))?;
-        iter(w, o.to_string().split("\n"))?;
-    }
-
-    w.flush()?;
-
-    loop {
-        let selected = input::wait_for_cmdchar()?;
-        for (c, o) in list.iter() {
-            if *c == selected {
-                return Ok(o.clone());
+        if num_iter == 1 {
+            queue!(w, Print(format!("{}: ", cmds[i])))?;
+            iter(w, item.to_string().split("\n"))?;
+        } else {
+            if cmds[i] == selected {
+                return Ok(item);
             }
         }
     }
+
+    unreachable!()
 }
 
 pub fn select_cmd<'a, W: Write, D: Clone + Command + 'a, I: Iterator<Item = &'a D>>(
