@@ -8,13 +8,22 @@ use crate::display::*;
 use crate::input;
 use crate::{Error, Result};
 
+pub fn edit_u32<W: Write>(w: &mut W, text: &str, old_u32: u32) -> Result<u32> {
+    iter(w, text.split("\n"))?;
+    line(w, "(Input should be a number)")?;
+    queue!(w, cursor::Show)?;
+    w.flush()?;
+
+    input::wait_for_u32(w, Some(old_u32))
+}
+
 pub fn input_u32<W: Write>(w: &mut W, text: &str) -> Result<u32> {
     iter(w, text.split("\n"))?;
     line(w, "(Input should be a number)")?;
     queue!(w, cursor::Show)?;
     w.flush()?;
 
-    input::wait_for_u32(w)
+    input::wait_for_u32(w, None)
 }
 
 pub fn edit_string<W: Write>(w: &mut W, text: &str, old_string: &str) -> Result<String> {

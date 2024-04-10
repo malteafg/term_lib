@@ -75,8 +75,14 @@ pub fn wait_for_cmdchar() -> Result<char> {
     }
 }
 
-pub fn wait_for_u32<W: Write>(w: &mut W) -> Result<u32> {
-    let mut input = String::new();
+pub fn wait_for_u32<W: Write>(w: &mut W, old_u32: Option<u32>) -> Result<u32> {
+    let mut input = if let Some(old_u32) = old_u32 {
+        old_u32.to_string()
+    } else {
+        String::new()
+    };
+    w.write(input.as_bytes())?;
+    w.flush()?;
     loop {
         if let Ok(Event::Key(KeyEvent {
             code,
