@@ -82,17 +82,15 @@ pub fn select_from_list<W: Write, D: Display, I: Iterator<Item = D> + Clone>(
         if num_iter == 1 {
             queue!(w, Print(format!("{}: ", cmds[i])))?;
             iter(w, item.to_string().split("\n"))?;
-        } else {
-            if cmds[i] == selected {
-                return Ok(item);
-            }
+        } else if cmds[i] == selected {
+            return Ok(item);
         }
     }
 
     unreachable!()
 }
 
-pub fn select_cmd<'a, W: Write, C: Command, I: Iterator<Item = C> + Clone>(
+pub fn select_cmd<W: Write, C: Command, I: Iterator<Item = C> + Clone>(
     w: &mut W,
     text: &str,
     options: I,
@@ -112,10 +110,8 @@ pub fn select_cmd<'a, W: Write, C: Command, I: Iterator<Item = C> + Clone>(
 
         if num_iter == 1 {
             line(w, cmd.display_as_cmd())?;
-        } else {
-            if cmd.get_char() == selected {
-                return Ok(cmd);
-            }
+        } else if cmd.get_char() == selected {
+            return Ok(cmd);
         }
     }
 

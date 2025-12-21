@@ -18,12 +18,7 @@ impl<C: Command + Ord> CmdList<C> {
     }
 
     pub fn get(&self, char: char) -> Option<&C> {
-        for cmd in &self.cmds {
-            if cmd.get_char() == char {
-                return Some(cmd);
-            }
-        }
-        None
+        self.cmds.iter().find(|&cmd| cmd.get_char() == char).map(|v| v as _)
     }
 }
 
@@ -40,13 +35,13 @@ impl<T: Command> Command for &T {
 impl<C: Command + Ord> core::ops::Deref for CmdList<C> {
     type Target = Vec<C>;
 
-    fn deref(self: &'_ Self) -> &'_ Self::Target {
+    fn deref(&'_ self) -> &'_ Self::Target {
         &self.cmds
     }
 }
 
 impl<C: Command + Ord> core::ops::DerefMut for CmdList<C> {
-    fn deref_mut(self: &'_ mut Self) -> &'_ mut Self::Target {
+    fn deref_mut(&'_ mut self) -> &'_ mut Self::Target {
         &mut self.cmds
     }
 }

@@ -11,7 +11,7 @@ use crate::{Error, Result};
 
 pub fn wait_for_string<W: Write>(w: &mut W, old_string: &str) -> Result<String> {
     let mut input = old_string.to_string();
-    w.write(input.as_bytes())?;
+    let _ = w.write(input.as_bytes())?;
     w.flush()?;
 
     loop {
@@ -25,7 +25,7 @@ pub fn wait_for_string<W: Write>(w: &mut W, old_string: &str) -> Result<String> 
             match code {
                 KeyCode::Char(c) => {
                     input.push(c);
-                    w.write(&[c as u8])?;
+                    let _ = w.write(&[c as u8])?;
                     w.flush()?;
                 }
                 KeyCode::Enter => {
@@ -37,7 +37,7 @@ pub fn wait_for_string<W: Write>(w: &mut W, old_string: &str) -> Result<String> 
                     return Err(Error::Escape);
                 }
                 KeyCode::Backspace => {
-                    if let Some(_) = input.pop() {
+                    if input.pop().is_some() {
                         execute!(w, MoveLeft(1), Print(" "), MoveLeft(1))?;
                     }
                 }
@@ -81,7 +81,7 @@ pub fn wait_for_u32<W: Write>(w: &mut W, old_u32: Option<u32>) -> Result<u32> {
     } else {
         String::new()
     };
-    w.write(input.as_bytes())?;
+    let _ = w.write(input.as_bytes())?;
     w.flush()?;
     loop {
         if let Ok(Event::Key(KeyEvent {
@@ -92,13 +92,10 @@ pub fn wait_for_u32<W: Write>(w: &mut W, old_u32: Option<u32>) -> Result<u32> {
         })) = crossterm::event::read()
         {
             match code {
-                KeyCode::Char(c) => match c {
-                    '0'..='9' => {
-                        input.push(c);
-                        w.write(&[c as u8])?;
-                        w.flush()?;
-                    }
-                    _ => {}
+                KeyCode::Char(c) => if let '0'..='9' = c {
+                    input.push(c);
+                    let _ = w.write(&[c as u8])?;
+                    w.flush()?;
                 },
                 KeyCode::Enter => {
                     let result = input.parse()?;
@@ -108,7 +105,7 @@ pub fn wait_for_u32<W: Write>(w: &mut W, old_u32: Option<u32>) -> Result<u32> {
                     return Err(Error::Escape);
                 }
                 KeyCode::Backspace => {
-                    if let Some(_) = input.pop() {
+                    if input.pop().is_some() {
                         execute!(w, MoveLeft(1), Print(" "), MoveLeft(1))?;
                     }
                 }
@@ -137,7 +134,7 @@ pub fn process_event(e: Event) -> Result<Option<char>> {
             _ => Ok(None),
         },
         KeyCode::Esc => {
-            return Err(Error::Escape);
+            Err(Error::Escape)
         }
         _ => Ok(None),
     }
